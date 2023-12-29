@@ -16,6 +16,9 @@ screen = pygame.display.set_mode(SIZE)
 # группы спрайтов
 all_sprites = pygame.sprite.Group()
 
+# группа координат
+arr_coordinates = [((459, 290), (585, 383))]
+
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
@@ -36,7 +39,7 @@ def load_image(name, colorkey=None):
 
 tile_images = {
     'fon': pygame.transform.scale(load_image('fon2.png'), (1000, 600)),
-    'bomb': pygame.transform.scale(load_image('bomb_2_lvl.png'), (900, 500))
+    'bomb': pygame.transform.scale(load_image('bomb_3_lvl.png'), (900, 500))
 }
 
 
@@ -48,6 +51,7 @@ def terminate():
 def generate_level():
     Fon()
     Bomb1LVLDraw(1, 1)
+
 
 def start_screen():
     intro_text = ["ЗАСТАВКА", "",
@@ -77,18 +81,51 @@ def start_screen():
                 return
         pygame.display.flip()
 
+
+def push_button(pos):
+    x, y = pos
+    if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < arr_coordinates[0][1][1]:
+        button.update()
+
+
 class Fon(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites)
         self.image = tile_images["fon"]
         self.rect = self.image.get_rect().move(
             0, 0)
+
+
 class Bomb1LVLDraw(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(all_sprites)
         self.image = tile_images["bomb"]
         self.rect = self.image.get_rect().move(
             pos_x * 50, pos_y * 50)
+
+
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y, size_x, size_y):
+        super().__init__(all_sprites)
+        self.size_x, self.size_y = size_x, size_y
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, self.size_x,
+                                self.size_y)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
 
 
 clock = pygame.time.Clock()
@@ -98,12 +135,15 @@ start_screen()
 FPS = 60
 print(all_sprites)
 generate_level()
+button = AnimatedSprite(pygame.transform.scale(load_image('button.png'), (544, 200)), 2, 1, 380, 240, 272, 200)
 while running:
     clock.tick(FPS)
     screen.fill(WHILE)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.MOUSEBUTTONUP:
+            push_button(event.pos)
     all_sprites.draw(screen)
     pygame.display.flip()
 terminate()
