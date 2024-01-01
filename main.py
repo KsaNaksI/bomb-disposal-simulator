@@ -17,7 +17,12 @@ screen = pygame.display.set_mode(SIZE)
 all_sprites = pygame.sprite.Group()
 
 # группа координат
-arr_coordinates = [((459, 290), (585, 383))]
+#                  Кнопка                    красный провод           синий  провод             зелёный провод
+arr_coordinates = [((459, 290), (585, 383)), ((81, 193), (110, 269)), ((139, 190), (170, 268)),
+                   ((200, 191), (230, 268))]
+dict_wire = {"blue": True, "red": True, "green": True}
+first_script = ["red", ]
+
 
 
 def load_image(name, colorkey=None):
@@ -83,8 +88,40 @@ def start_screen():
 
 
 def push_button(pos):
+    if True:
+        sorted_coordinates(pos)
+
+
+def sorted_coordinates(pos):
     x, y = pos
-    if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < arr_coordinates[0][1][1]:
+    print(x, y)
+    if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < arr_coordinates[0][1][
+        1]:
+        return "button"
+    elif arr_coordinates[1][0][0] < x < arr_coordinates[1][1][0] and arr_coordinates[1][0][1] < y < \
+            arr_coordinates[1][1][
+                1] and dict_wire["red"]:
+        dict_wire["red"] = False
+        red_wire.update()
+        load_script.wire_script("red")
+    elif arr_coordinates[2][0][0] < x < arr_coordinates[2][1][0] and arr_coordinates[2][0][1] < y < \
+            arr_coordinates[2][1][
+                1] and dict_wire["blue"]:
+        dict_wire["blue"] = False
+        blue_wire.update()
+        load_script.wire_script("blue")
+    elif arr_coordinates[3][0][0] < x < arr_coordinates[3][1][0] and arr_coordinates[3][0][1] < y < \
+            arr_coordinates[3][1][
+                1] and dict_wire["green"]:
+        green_wire.update()
+        dict_wire["green"] = False
+        load_script.wire_script("green")
+
+
+def down_button(pos):
+    x, y = pos
+    if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < arr_coordinates[0][1][
+        1]:
         button.update()
 
 
@@ -127,6 +164,19 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
+class LoadScript:
+    def __init__(self, wire, button, serial_number, power):
+        self.wire = wire
+        self.button = button
+        self.serial_number = serial_number
+        self.power = power
+
+    def wire_script(self, wire):
+        if wire != self.wire:
+            print("Ну всо")
+        else:
+            indicator_wire.update()
+
 
 clock = pygame.time.Clock()
 pygame.display.set_caption("bomb disposal simulator")
@@ -135,7 +185,13 @@ start_screen()
 FPS = 60
 print(all_sprites)
 generate_level()
+load_script = LoadScript("red", "click", "1212", "full")
 button = AnimatedSprite(pygame.transform.scale(load_image('button.png'), (544, 200)), 2, 1, 380, 240, 272, 200)
+red_wire = AnimatedSprite(pygame.transform.scale(load_image('red_wire.png'), (60, 80)), 2, 1, 80, 190, 30, 80)
+blue_wire = AnimatedSprite(pygame.transform.scale(load_image('blue_wire.png'), (60, 80)), 2, 1, 140, 190, 30, 80)
+green_wire = AnimatedSprite(pygame.transform.scale(load_image('green_wire.png'), (60, 80)), 2, 1, 200, 190, 30, 80)
+indicator_wire = AnimatedSprite(pygame.transform.scale(load_image('indicator.png'), (80, 40)), 2, 1, 246, 155, 40, 40)
+indicator_button = AnimatedSprite(pygame.transform.scale(load_image('indicator.png'), (80, 40)), 2, 1, 670, 220, 40, 40)
 while running:
     clock.tick(FPS)
     screen.fill(WHILE)
@@ -144,6 +200,8 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONUP:
             push_button(event.pos)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            down_button(event.pos)
     all_sprites.draw(screen)
     pygame.display.flip()
 terminate()
