@@ -92,9 +92,8 @@ def main_menu():
                                  2, 1, 10, 10, 300,
                                  150, False)
     easy_level_button = AnimatedSprite(pygame.transform.scale(load_image('easy_level_button.png'), (600, 150)),
-                                 2, 1, 500, 10, 300,
-                                 150, False)
-    running = True
+                                       2, 1, 500, 10, 300,
+                                       150, False)
     flag_button_back = True
     flag_button_easy_level = True
     while True:
@@ -109,19 +108,20 @@ def main_menu():
                 elif (not 10 < x < 310 or not 10 < y < 160) and not flag_button_back:
                     button_back.update()
                     flag_button_back = True
-                if 500 < x < 800 and 10 < 150 and flag_button_easy_level:
+                if 500 < x < 800 and 10 < y < 150 and flag_button_easy_level:
                     easy_level_button.update()
                     flag_button_easy_level = False
-                elif (not 500 < x < 800 or not 10 < 150) and not flag_button_easy_level:
+                elif (not 500 < x < 800 or not 10 < y < 150) and not flag_button_easy_level:
                     easy_level_button.update()
                     flag_button_easy_level = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 print(x, y)
                 if 10 < x < 390 and 10 < y < 160:
-                    start_screen()
-                if 500 < x < 800 and 10 < 150:
-                    return
+                    return "main_menu"
+                if 500 < x < 800 and 10 < y < 150:
+                    print(1)
+                    return "easy_level"
         all_sprites.draw(screen)
         pygame.display.flip()
 
@@ -130,14 +130,17 @@ def start_screen():
     fon = pygame.transform.scale(load_image('fon_menu.png'), (W, H))
     screen.blit(fon, (0, 0))
     Fon()
-    button_start = AnimatedSprite(pygame.transform.scale(load_image('button_menu_1.png'), (600, 150)), 2, 1, 350, 200,
+    button_start = AnimatedSprite(pygame.transform.scale(load_image('button_menu_1.png'), (600, 150)), 2, 1, 350,
+                                  200,
                                   300,
                                   150, False)
-    button_reg = AnimatedSprite(pygame.transform.scale(load_image('button_menu_games.png'), (800, 150)), 2, 1, 10, 10,
+    button_reg = AnimatedSprite(pygame.transform.scale(load_image('button_menu_games.png'), (800, 150)), 2, 1, 10,
+                                10,
                                 400,
                                 150, False)
     flag_button_reg = True
     flag_button_start = True
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -145,8 +148,23 @@ def start_screen():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if 349 < x < 659 and 202 < y < 346:
-                    main_menu()
-                    return
+                    result = main_menu()
+                    if result != "main_menu":
+                        return result
+                    else:
+                        fon = pygame.transform.scale(load_image('fon_menu.png'), (W, H))
+                        screen.blit(fon, (0, 0))
+                        Fon()
+                        button_start = AnimatedSprite(
+                            pygame.transform.scale(load_image('button_menu_1.png'), (600, 150)), 2, 1, 350,
+                            200,
+                            300,
+                            150, False)
+                        button_reg = AnimatedSprite(
+                            pygame.transform.scale(load_image('button_menu_games.png'), (800, 150)), 2, 1, 10,
+                            10,
+                            400,
+                            150, False)
                 if 10 < x < 410 and 10 < y < 160:
                     print(1)
             elif event.type == pygame.MOUSEMOTION:
@@ -282,11 +300,11 @@ class LoadEasyScript:
 clock = pygame.time.Clock()
 pygame.display.set_caption("bomb disposal simulator")
 running = True
-start_screen()
 FPS = 60
 print(all_sprites)
-generate_level()
-load_script = LoadEasyScript("red", 3, "517B")
+if start_screen() == "easy_level":
+    generate_level()
+    load_script = LoadEasyScript("red", 3, "517B")
 while running:
     clock.tick(FPS)
     screen.fill(WHILE)
