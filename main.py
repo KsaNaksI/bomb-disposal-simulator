@@ -18,7 +18,7 @@ all_sprites = pygame.sprite.Group()
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y, size_x, size_y, flag):
+    def __init__(self, sheet, columns, rows, x, y, size_x, size_y, flag, parent=None):
         super().__init__(all_sprites)
         self.columns = columns
         self.rows = rows
@@ -31,6 +31,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
+        self.parent = parent
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, self.size_x,
@@ -46,9 +47,22 @@ class AnimatedSprite(pygame.sprite.Sprite):
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = self.frames[self.cur_frame]
             self.count_click += 1
+            if self in load_script.arr_indicators:
+                self.parent.check()
         elif not self.flag:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = self.frames[self.cur_frame]
+
+
+class AnimatedSpriteIndicator(AnimatedSprite):
+    def __init__(self, sheet, columns, rows, x, y, size_x, size_y, flag):
+        super().__init__(sheet, columns, rows, x, y, size_x, size_y, flag, self)
+        self.count_indicator = 0
+
+    def check(self):
+        load_script.arr_indicators[self] = True
+        if all(list(load_script.arr_indicators.values())):
+            print("Победа")
 
 
 def load_image(name, colorkey=None):
@@ -116,11 +130,9 @@ def main_menu():
                     flag_button_easy_level = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
-                print(x, y)
                 if 10 < x < 390 and 10 < y < 160:
                     return "main_menu"
                 if 500 < x < 800 and 10 < y < 150:
-                    print(1)
                     return "easy_level"
         all_sprites.draw(screen)
         pygame.display.flip()
@@ -166,7 +178,7 @@ def start_screen():
                             400,
                             150, False)
                 if 10 < x < 410 and 10 < y < 160:
-                    print(1)
+                    print("reg")
             elif event.type == pygame.MOUSEMOTION:
                 x, y = event.pos
                 if 349 < x < 659 and 202 < y < 346 and flag_button_start:
@@ -201,7 +213,6 @@ def down_button(pos):
 
 def sorted_coordinates(pos):
     x, y = pos
-    print(x, y)
     arr_coordinates = load_script.arr_coordinates
     if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < arr_coordinates[0][1][
         1]:
@@ -254,6 +265,7 @@ class LoadEasyScript:
         self.button_click = button_click
         self.count_button_click = 0
         self.serial_number = serial_number
+        self.dict_serial_numbers = {'number_EA500.png': 2, "number_22081921.png": 3, "number_517B.png": 4, "number_3A3CC9.png": 7}
         self.arr_coordinates = [((459, 290), (585, 383)), ((81, 193), (110, 269)), ((139, 190), (170, 268)),
                                 ((200, 191), (230, 268)), ((104, 84), (250, 130)), ((673, 334), (715, 381))]
         self.arr_wire = ["blue", "red", "green"]
@@ -268,24 +280,28 @@ class LoadEasyScript:
         self.green_wire = AnimatedSprite(pygame.transform.scale(load_image('green_wire.png'), (60, 80)), 2, 1, 200, 190,
                                          30,
                                          80, True)
-        self.indicator_wire = AnimatedSprite(pygame.transform.scale(load_image('indicator.png'), (80, 40)), 2, 1, 246,
-                                             155,
-                                             40, 40, True)
-        self.indicator_button = AnimatedSprite(pygame.transform.scale(load_image('indicator.png'), (80, 40)), 2, 1, 670,
-                                               220,
-                                               40, 40, True)
-        self.serial_number_sprite = AnimatedSprite(pygame.transform.scale(load_image('number_517B.png'), (510, 216)), 2,
-                                                   4, 60,
+        self.indicator_wire = AnimatedSpriteIndicator(pygame.transform.scale(load_image('indicator.png'), (80, 40)), 2,
+                                                      1, 246,
+                                                      155,
+                                                      40, 40, True)
+        self.indicator_button = AnimatedSpriteIndicator(pygame.transform.scale(load_image('indicator.png'), (80, 40)),
+                                                        2, 1, 670,
+                                                        220,
+                                                        40, 40, True)
+        print(self.dict_serial_numbers[serial_number], serial_number)
+        self.serial_number_sprite = AnimatedSprite(pygame.transform.scale(load_image(serial_number), (510, 54 * self.dict_serial_numbers[serial_number])), 2,
+                                                   self.dict_serial_numbers[serial_number], 60,
                                                    80,
                                                    255, 54, True)
         self.mini_button = AnimatedSprite(pygame.transform.scale(load_image('mini_button.png'), (204, 324)), 4,
                                           2, 669,
                                           330,
                                           51, 54, False)
+        self.arr_indicators = {self.indicator_wire: False, self.indicator_button: False}
 
     def wire_script(self, wire):
         if wire != self.wire:
-            print("Ну всо")
+            print("Бах")
         else:
             self.indicator_wire.update()
 
@@ -294,7 +310,7 @@ class LoadEasyScript:
             print("Бах")
         else:
             self.indicator_button.update()
-            print("оке")
+
 
 
 clock = pygame.time.Clock()
@@ -302,9 +318,13 @@ pygame.display.set_caption("bomb disposal simulator")
 running = True
 FPS = 60
 print(all_sprites)
+
 if start_screen() == "easy_level":
+    easy_levels = set()
+    [easy_levels.add(i) for i in [("blue", 3, "number_517B.png"), ("green", 3, 'number_EA500.png'), ("blue", 3, "number_22081921.png"), ("red", 3, "number_3A3CC9.png")]]
     generate_level()
-    load_script = LoadEasyScript("red", 3, "517B")
+    level = easy_levels.pop()
+    load_script = LoadEasyScript(*level)
 while running:
     clock.tick(FPS)
     screen.fill(WHILE)

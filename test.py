@@ -1,9 +1,55 @@
-a = 5000
-for i in range(1, 13):
-    print("Месяц", i, "Деньги - ", a)
-    a += a // 10 
+import pygame
+import sys
+import os
+
+pygame.init()
 
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y, size_x, size_y, flag):
+        super().__init__(all_sprites)
+        self.columns = columns
+        self.rows = rows
+        self.flag = flag
+        self.count_click = 0
+
+        self.size_x, self.size_y = size_x, size_y
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, self.size_x,
+                                self.size_y)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        if self.flag and self.columns * self.rows != self.count_click + 1:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = self.frames[self.cur_frame]
+            self.count_click += 1
+            print(1)
+
+            # Используем метод check из класса AnimatedSpriteIndicator
+            self.check()
+        elif not self.flag:
+            print(2)
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = self.frames[self.cur_frame]
+
+    def check(self):
+        print("Check in AnimatedSprite")
+
+class AnimatedSpriteIndicator(AnimatedSprite):
+    def check(self):
+        super().check()
+        print("Check in AnimatedSpriteIndicator")
 
 
 
