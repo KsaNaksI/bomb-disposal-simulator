@@ -1,6 +1,7 @@
 import pygame
 import sys
 import os
+from datetime import datetime, timedelta
 
 pygame.init()
 
@@ -178,7 +179,7 @@ def start_screen():
                             400,
                             150, False)
                 if 10 < x < 410 and 10 < y < 160:
-                    print("reg")
+                    print("button_reg_click")
             elif event.type == pygame.MOUSEMOTION:
                 x, y = event.pos
                 if 349 < x < 659 and 202 < y < 346 and flag_button_start:
@@ -301,13 +302,13 @@ class LoadEasyScript:
 
     def wire_script(self, wire):
         if wire != self.wire:
-            print("Бах")
+            terminate()
         else:
             self.indicator_wire.update()
 
     def func_button_click(self, button_count):
         if button_count != self.button_click:
-            print("Бах")
+            terminate()
         else:
             self.indicator_button.update()
 
@@ -318,13 +319,14 @@ pygame.display.set_caption("bomb disposal simulator")
 running = True
 FPS = 60
 print(all_sprites)
-
+f2 = pygame.font.SysFont('serif', 28)
 if start_screen() == "easy_level":
     easy_levels = set()
     [easy_levels.add(i) for i in [("blue", 3, "number_517B.png"), ("green", 3, 'number_EA500.png'), ("blue", 3, "number_22081921.png"), ("red", 3, "number_3A3CC9.png")]]
     generate_level()
     level = easy_levels.pop()
     load_script = LoadEasyScript(*level)
+    clock_in_half_hour = datetime.now() + timedelta(seconds=60)
 while running:
     clock.tick(FPS)
     screen.fill(WHILE)
@@ -335,6 +337,13 @@ while running:
             push_button(event.pos)
         if event.type == pygame.MOUSEBUTTONDOWN:
             down_button(event.pos)
+    time_new = datetime.now()
+    if time_new.strftime('%H:%M %S') == clock_in_half_hour.strftime('%H:%M %S'):
+        terminate()
     all_sprites.draw(screen)
+    time = clock_in_half_hour - time_new
+    text2 = f2.render(str(time.seconds), False,
+                      (255, 0, 0))
+    screen.blit(text2, (155, 355))
     pygame.display.flip()
 terminate()
