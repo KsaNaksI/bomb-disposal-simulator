@@ -10,11 +10,8 @@ GREEN = pygame.Color("#00FF00")
 BLUE = pygame.Color(0, 0, 225)
 BLACK = pygame.Color("#000000")
 WHILE = pygame.Color(255, 255, 255)
-rgb = (BLUE, GREEN, RED)
 SIZE = W, H = (1000, 600)
 screen = pygame.display.set_mode(SIZE)
-
-# группы спрайтов
 all_sprites = pygame.sprite.Group()
 
 
@@ -63,7 +60,7 @@ class AnimatedSpriteIndicator(AnimatedSprite):
     def check(self):
         load_script.arr_indicators[self] = True
         if all(list(load_script.arr_indicators.values())):
-            print("Победа")
+            print(1)
 
 
 def load_image(name, colorkey=None):
@@ -266,7 +263,8 @@ class LoadEasyScript:
         self.button_click = button_click
         self.count_button_click = 0
         self.serial_number = serial_number
-        self.dict_serial_numbers = {'number_EA500.png': 2, "number_22081921.png": 3, "number_517B.png": 4, "number_3A3CC9.png": 7}
+        self.dict_serial_numbers = {'number_EA500.png': 2, "number_22081921.png": 3, "number_517B.png": 4,
+                                    "number_3A3CC9.png": 7}
         self.arr_coordinates = [((459, 290), (585, 383)), ((81, 193), (110, 269)), ((139, 190), (170, 268)),
                                 ((200, 191), (230, 268)), ((104, 84), (250, 130)), ((673, 334), (715, 381))]
         self.arr_wire = ["blue", "red", "green"]
@@ -289,11 +287,11 @@ class LoadEasyScript:
                                                         2, 1, 670,
                                                         220,
                                                         40, 40, True)
-        print(self.dict_serial_numbers[serial_number], serial_number)
-        self.serial_number_sprite = AnimatedSprite(pygame.transform.scale(load_image(serial_number), (510, 54 * self.dict_serial_numbers[serial_number])), 2,
-                                                   self.dict_serial_numbers[serial_number], 60,
-                                                   80,
-                                                   255, 54, True)
+        self.serial_number_sprite = AnimatedSprite(
+            pygame.transform.scale(load_image(serial_number), (510, 54 * self.dict_serial_numbers[serial_number])), 2,
+            self.dict_serial_numbers[serial_number], 60,
+            80,
+            255, 54, True)
         self.mini_button = AnimatedSprite(pygame.transform.scale(load_image('mini_button.png'), (204, 324)), 4,
                                           2, 669,
                                           330,
@@ -313,37 +311,48 @@ class LoadEasyScript:
             self.indicator_button.update()
 
 
-
-clock = pygame.time.Clock()
-pygame.display.set_caption("bomb disposal simulator")
-running = True
-FPS = 60
-print(all_sprites)
-f2 = pygame.font.SysFont('serif', 28)
 if start_screen() == "easy_level":
     easy_levels = set()
-    [easy_levels.add(i) for i in [("blue", 3, "number_517B.png"), ("green", 3, 'number_EA500.png'), ("blue", 3, "number_22081921.png"), ("red", 3, "number_3A3CC9.png")]]
+    [easy_levels.add(i) for i in
+     [("blue", 3, "number_517B.png"), ("green", 3, 'number_EA500.png'), ("blue", 3, "number_22081921.png"),
+      ("red", 3, "number_3A3CC9.png")]]
     generate_level()
     level = easy_levels.pop()
     load_script = LoadEasyScript(*level)
     clock_in_half_hour = datetime.now() + timedelta(seconds=60)
-while running:
-    clock.tick(FPS)
-    screen.fill(WHILE)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.MOUSEBUTTONUP:
-            push_button(event.pos)
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            down_button(event.pos)
-    time_new = datetime.now()
-    if time_new.strftime('%H:%M %S') == clock_in_half_hour.strftime('%H:%M %S'):
-        terminate()
-    all_sprites.draw(screen)
-    time = clock_in_half_hour - time_new
-    text2 = f2.render(str(time.seconds), False,
-                      (255, 0, 0))
-    screen.blit(text2, (155, 355))
-    pygame.display.flip()
+
+
+def main_cycle():
+    clock = pygame.time.Clock()
+    pygame.display.set_caption("bomb disposal simulator")
+    running = True
+    FPS = 60
+    f2 = pygame.font.SysFont('serif', 28)
+    count_button = pygame.font.SysFont('serif', 28)
+    while running:
+        clock.tick(FPS)
+        screen.fill(WHILE)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONUP:
+                push_button(event.pos)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                down_button(event.pos)
+        time_new = datetime.now()
+        if time_new.strftime('%H:%M %S') == clock_in_half_hour.strftime('%H:%M %S'):
+            terminate()
+        all_sprites.draw(screen)
+        time = clock_in_half_hour - time_new
+        count_button_click = count_button.render(str(load_script.count_button_click), False,
+                                                 (255, 0, 0))
+        time_render = f2.render(str(time.seconds), False,
+                                (255, 0, 0))
+        screen.blit(time_render, (155, 355))
+        screen.blit(count_button_click, (520, 165))
+        pygame.display.flip()
+    return
+
+
+main_cycle()
 terminate()
