@@ -2,6 +2,8 @@ import pygame
 import sys
 import os
 from datetime import datetime, timedelta
+from random import choice
+import time
 
 pygame.init()
 
@@ -60,7 +62,8 @@ class AnimatedSpriteIndicator(AnimatedSprite):
     def check(self):
         load_script.arr_indicators[self] = True
         if all(list(load_script.arr_indicators.values())):
-            print(1)
+            check_winner.control_check()
+
 
 
 def load_image(name, colorkey=None):
@@ -195,6 +198,21 @@ def start_screen():
         pygame.display.flip()
 
 
+def finish_menu():
+    fon_finish_menu = AnimatedSprite(pygame.transform.scale(load_image('fon_win.png'), (2000, 600)), 2, 1, 0, 0, 1000,
+                                     600, False)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        time.sleep(1)
+        fon_finish_menu.update()
+        all_sprites.draw(screen)
+        pygame.display.flip()
+
+
 def push_button(pos):
     if True:
         sorted_coordinates(pos)
@@ -207,6 +225,10 @@ def down_button(pos):
         1]:
         sorted_coordinates(pos)
         load_script.count_button_click += 1
+    elif arr_coordinates[5][0][0] < x < arr_coordinates[5][1][0] and arr_coordinates[5][0][1] < y < \
+            arr_coordinates[5][1][
+                1]:
+        load_script.func_button_click(load_script.count_button_click)
 
 
 def sorted_coordinates(pos):
@@ -235,10 +257,6 @@ def sorted_coordinates(pos):
             arr_coordinates[4][1][
                 1]:
         load_script.serial_number_sprite.update()
-    elif arr_coordinates[5][0][0] < x < arr_coordinates[5][1][0] and arr_coordinates[5][0][1] < y < \
-            arr_coordinates[5][1][
-                1]:
-        load_script.func_button_click(load_script.count_button_click)
 
 
 class Fon(pygame.sprite.Sprite):
@@ -311,48 +329,58 @@ class LoadEasyScript:
             self.indicator_button.update()
 
 
-if start_screen() == "easy_level":
-    easy_levels = set()
-    [easy_levels.add(i) for i in
-     [("blue", 3, "number_517B.png"), ("green", 3, 'number_EA500.png'), ("blue", 3, "number_22081921.png"),
-      ("red", 3, "number_3A3CC9.png")]]
-    generate_level()
-    level = easy_levels.pop()
-    load_script = LoadEasyScript(*level)
-    clock_in_half_hour = datetime.now() + timedelta(seconds=60)
+class CheckWinner:
+    def __init__(self):
+        self.running = True
+
+    def check(self):
+        return self.running
+
+    def control_check(self):
+        self.running = False
 
 
-def main_cycle():
-    clock = pygame.time.Clock()
-    pygame.display.set_caption("bomb disposal simulator")
-    running = True
-    FPS = 60
-    f2 = pygame.font.SysFont('serif', 28)
-    count_button = pygame.font.SysFont('serif', 28)
-    while running:
-        clock.tick(FPS)
-        screen.fill(WHILE)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.MOUSEBUTTONUP:
-                push_button(event.pos)
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                down_button(event.pos)
-        time_new = datetime.now()
-        if time_new.strftime('%H:%M %S') == clock_in_half_hour.strftime('%H:%M %S'):
-            terminate()
-        all_sprites.draw(screen)
-        time = clock_in_half_hour - time_new
-        count_button_click = count_button.render(str(load_script.count_button_click), False,
-                                                 (255, 0, 0))
-        time_render = f2.render(str(time.seconds), False,
-                                (255, 0, 0))
-        screen.blit(time_render, (155, 355))
-        screen.blit(count_button_click, (520, 165))
-        pygame.display.flip()
-    return
 
+while True:
+    all_sprites = pygame.sprite.Group()
+    if start_screen() == "easy_level":
+        easy_levels = [("blue", 3, "number_517B.png"), ("green", 3, 'number_EA500.png'), ("blue", 3, "number_22081921.png"),
+          ("red", 3, "number_3A3CC9.png")]
+        generate_level()
+        level = choice(easy_levels)
+        load_script = LoadEasyScript(*level)
+        clock_in_half_hour = datetime.now() + timedelta(seconds=60)
+        check_winner = CheckWinner()
 
-main_cycle()
-terminate()
+    def main_cycle():
+        clock = pygame.time.Clock()
+        pygame.display.set_caption("bomb disposal simulator")
+        FPS = 60
+        f2 = pygame.font.SysFont('serif', 28)
+        count_button = pygame.font.SysFont('serif', 28)
+        while check_winner.check():
+            clock.tick(FPS)
+            screen.fill(WHILE)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    check_winner.control_check()
+                    terminate()
+                if event.type == pygame.MOUSEBUTTONUP:
+                    push_button(event.pos)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    down_button(event.pos)
+            time_new = datetime.now()
+            if time_new.strftime('%H:%M %S') == clock_in_half_hour.strftime('%H:%M %S'):
+                terminate()
+            all_sprites.draw(screen)
+            time = clock_in_half_hour - time_new
+            count_button_click = count_button.render(str(load_script.count_button_click), False,
+                                                     (255, 0, 0))
+            time_render = f2.render(str(time.seconds), False,
+                                    (255, 0, 0))
+            screen.blit(time_render, (155, 355))
+            screen.blit(count_button_click, (520, 165))
+            pygame.display.flip()
+        screen.fill([0, 0, 0])
+        finish_menu()
+    main_cycle()
