@@ -3,7 +3,6 @@ import sys
 import os
 from datetime import datetime, timedelta
 from random import choice
-import time
 
 pygame.init()
 
@@ -63,6 +62,7 @@ class AnimatedSpriteIndicator(AnimatedSprite):
         load_script.arr_indicators[self] = True
         if all(list(load_script.arr_indicators.values())):
             check_winner.control_check()
+            load_script.ending = True
 
 
 
@@ -85,7 +85,8 @@ def load_image(name, colorkey=None):
 
 tile_images = {
     'fon': pygame.transform.scale(load_image('fon_menu.png'), (1000, 600)),
-    'bomb': pygame.transform.scale(load_image('bomb_3_lvl.png'), (900, 500))
+    'bomb': pygame.transform.scale(load_image('bomb_3_lvl.png'), (900, 500)),
+    'fon2': pygame.transform.scale(load_image('fon2.png'), (1000, 600))
 }
 
 
@@ -95,7 +96,7 @@ def terminate():
 
 
 def generate_level():
-    Fon()
+    Fon_Game()
     Bomb1LVLDraw(1, 1)
 
 
@@ -199,16 +200,19 @@ def start_screen():
 
 
 def finish_menu():
-    fon_finish_menu = AnimatedSprite(pygame.transform.scale(load_image('fon_win.png'), (2000, 600)), 2, 1, 0, 0, 1000,
+    fon_finish_menu = AnimatedSprite(pygame.transform.scale(load_image('fon_win.png'), (2000, 600)), 2, 1,
+                                     0, 0, 1000,
                                      600, False)
+    time = datetime.now()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 return
-        time.sleep(1)
-        fon_finish_menu.update()
+        if time.second != datetime.now().second:
+            time = datetime.now()
+            fon_finish_menu.update()
         all_sprites.draw(screen)
         pygame.display.flip()
 
@@ -266,6 +270,14 @@ class Fon(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             0, 0)
 
+class Fon_Game(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(all_sprites)
+        self.image = tile_images["fon2"]
+        self.rect = self.image.get_rect().move(
+            0, 0)
+
+
 
 class Bomb1LVLDraw(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
@@ -277,6 +289,7 @@ class Bomb1LVLDraw(pygame.sprite.Sprite):
 
 class LoadEasyScript:
     def __init__(self, wire, button_click, serial_number):
+        self.ending = False
         self.wire = wire
         self.button_click = button_click
         self.count_button_click = 0
@@ -318,13 +331,13 @@ class LoadEasyScript:
 
     def wire_script(self, wire):
         if wire != self.wire:
-            terminate()
+            check_winner.control_check()
         else:
             self.indicator_wire.update()
 
     def func_button_click(self, button_count):
         if button_count != self.button_click:
-            terminate()
+            check_winner.control_check()
         else:
             self.indicator_button.update()
 
@@ -339,18 +352,36 @@ class CheckWinner:
     def control_check(self):
         self.running = False
 
+def lose_window():
+    fon_lose_menu = AnimatedSprite(pygame.transform.scale(load_image('lose_main.png'), (2000, 600)), 2, 1, 0, 0, 1000,
+                                     600, False)
+    time = datetime.now()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        if time.second != datetime.now().second:
+            print(time.second, datetime.now().second)
+            time = datetime.now()
+            fon_lose_menu.update()
+        all_sprites.draw(screen)
+        pygame.display.flip()
+
 
 
 while True:
     all_sprites = pygame.sprite.Group()
     if start_screen() == "easy_level":
-        easy_levels = [("blue", 3, "number_517B.png"), ("green", 3, 'number_EA500.png'), ("blue", 3, "number_22081921.png"),
-          ("red", 3, "number_3A3CC9.png")]
+        easy_levels = [("blue", 1, "number_517B.png"), ("green", 6, 'number_EA500.png'), ("blue", 3, "number_22081921.png"),
+          ("red", 2, "number_3A3CC9.png")]
         generate_level()
         level = choice(easy_levels)
         load_script = LoadEasyScript(*level)
         clock_in_half_hour = datetime.now() + timedelta(seconds=60)
         check_winner = CheckWinner()
+
 
     def main_cycle():
         clock = pygame.time.Clock()
@@ -358,29 +389,33 @@ while True:
         FPS = 60
         f2 = pygame.font.SysFont('serif', 28)
         count_button = pygame.font.SysFont('serif', 28)
+        pos = (0, 0)
         while check_winner.check():
             clock.tick(FPS)
             screen.fill(WHILE)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    check_winner.control_check()
-                    terminate()
-                if event.type == pygame.MOUSEBUTTONUP:
-                    push_button(event.pos)
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    down_button(event.pos)
             time_new = datetime.now()
             if time_new.strftime('%H:%M %S') == clock_in_half_hour.strftime('%H:%M %S'):
-                terminate()
+                check_winner.control_check()
             all_sprites.draw(screen)
             time = clock_in_half_hour - time_new
             count_button_click = count_button.render(str(load_script.count_button_click), False,
-                                                     (255, 0, 0))
+                                                     (0, 0, 0))
             time_render = f2.render(str(time.seconds), False,
                                     (255, 0, 0))
             screen.blit(time_render, (155, 355))
             screen.blit(count_button_click, (520, 165))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    check_winner.control_check()
+                    terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = event.pos
+                    down_button(pos)
+                if event.type == pygame.MOUSEBUTTONUP:
+                    push_button(pos)
             pygame.display.flip()
-        screen.fill([0, 0, 0])
-        finish_menu()
+        if load_script.ending:
+            finish_menu()
+        else:
+            lose_window()
     main_cycle()
