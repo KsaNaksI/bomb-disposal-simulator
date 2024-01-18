@@ -3,6 +3,7 @@ import sys
 import os
 from datetime import datetime, timedelta
 from random import choice
+import sqlite3
 
 pygame.init()
 
@@ -65,7 +66,6 @@ class AnimatedSpriteIndicator(AnimatedSprite):
             load_script.ending = True
 
 
-
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     # если файл не существует, то выходим
@@ -88,6 +88,7 @@ tile_images = {
     'bomb': pygame.transform.scale(load_image('bomb_3_lvl.png'), (900, 500)),
     'fon2': pygame.transform.scale(load_image('fon2.png'), (1000, 600))
 }
+DICT_COMPLEXITY = {"easy_level": "Легкая"}
 
 
 def terminate():
@@ -148,11 +149,6 @@ def start_screen():
                                   200,
                                   300,
                                   150, False)
-    button_reg = AnimatedSprite(pygame.transform.scale(load_image('button_menu_games.png'), (800, 150)), 2, 1, 10,
-                                10,
-                                400,
-                                150, False)
-    flag_button_reg = True
     flag_button_start = True
 
     while True:
@@ -174,13 +170,6 @@ def start_screen():
                             200,
                             300,
                             150, False)
-                        button_reg = AnimatedSprite(
-                            pygame.transform.scale(load_image('button_menu_games.png'), (800, 150)), 2, 1, 10,
-                            10,
-                            400,
-                            150, False)
-                if 10 < x < 410 and 10 < y < 160:
-                    print("button_reg_click")
             elif event.type == pygame.MOUSEMOTION:
                 x, y = event.pos
                 if 349 < x < 659 and 202 < y < 346 and flag_button_start:
@@ -189,79 +178,53 @@ def start_screen():
                 elif (not 349 < x < 659 or not 202 < y < 346) and not flag_button_start:
                     button_start.update()
                     flag_button_start = True
-                if 10 < x < 410 and 10 < y < 160 and flag_button_reg:
-                    flag_button_reg = False
-                    button_reg.update()
-                elif (not 10 < x < 410 or not 10 < y < 160) and not flag_button_reg:
-                    flag_button_reg = True
-                    button_reg.update()
         all_sprites.draw(screen)
         pygame.display.flip()
 
 
-def finish_menu():
+def finish_menu(time, complexity):
     fon_finish_menu = AnimatedSprite(pygame.transform.scale(load_image('fon_win.png'), (2000, 600)), 2, 1,
                                      0, 0, 1000,
                                      600, False)
-    time = datetime.now()
+    if manage_data_base.return_data_base()[0][0] < time:
+        manage_data_base.changing_a_cell(time)
+    time_sun = datetime.now()
+    manage_data_base.changing_a_cell("win")
+    complexity_text = pygame.font.SysFont('serif', 28)
+    complexity_text = complexity_text.render(DICT_COMPLEXITY[complexity], False,
+                                             (0, 0, 0))
+    record_time_text = pygame.font.SysFont('serif', 28)
+    record_time_text = record_time_text.render(str(manage_data_base.return_data_base()[0][0]), False,
+                                               (0, 0, 0))
+    time_text = pygame.font.SysFont('serif', 28)
+    time_text = time_text.render(str(time), False,
+                                 (0, 0, 0))
+    win_count_text = pygame.font.SysFont('serif', 28)
+    win_count_text = win_count_text.render(str(manage_data_base.return_data_base()[0][1]), False,
+                                           (0, 0, 0))
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 return
-        if time.second != datetime.now().second:
-            time = datetime.now()
+        if time_sun.second != datetime.now().second:
+            time_sun = datetime.now()
             fon_finish_menu.update()
         all_sprites.draw(screen)
+        screen.blit(complexity_text, (215, 103))
+        screen.blit(record_time_text, (315, 340))
+        screen.blit(time_text, (315, 225))
+        screen.blit(win_count_text, (280, 498))
         pygame.display.flip()
 
 
 def push_button(pos):
-    if True:
-        sorted_coordinates(pos)
-
+    load_script.sorted_coordinates(pos)
 
 def down_button(pos):
-    x, y = pos
-    arr_coordinates = load_script.arr_coordinates
-    if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < arr_coordinates[0][1][
-        1]:
-        sorted_coordinates(pos)
-        load_script.count_button_click += 1
-    elif arr_coordinates[5][0][0] < x < arr_coordinates[5][1][0] and arr_coordinates[5][0][1] < y < \
-            arr_coordinates[5][1][
-                1]:
-        load_script.func_button_click(load_script.count_button_click)
-
-
-def sorted_coordinates(pos):
-    x, y = pos
-    arr_coordinates = load_script.arr_coordinates
-    if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < arr_coordinates[0][1][
-        1]:
-        load_script.button.update()
-        load_script.mini_button.update()
-    elif arr_coordinates[1][0][0] < x < arr_coordinates[1][1][0] and arr_coordinates[1][0][1] < y < \
-            arr_coordinates[1][1][
-                1]:
-        load_script.red_wire.update()
-        load_script.wire_script("red")
-    elif arr_coordinates[2][0][0] < x < arr_coordinates[2][1][0] and arr_coordinates[2][0][1] < y < \
-            arr_coordinates[2][1][
-                1]:
-        load_script.blue_wire.update()
-        load_script.wire_script("blue")
-    elif arr_coordinates[3][0][0] < x < arr_coordinates[3][1][0] and arr_coordinates[3][0][1] < y < \
-            arr_coordinates[3][1][
-                1]:
-        load_script.green_wire.update()
-        load_script.wire_script("green")
-    elif arr_coordinates[4][0][0] < x < arr_coordinates[4][1][0] and arr_coordinates[4][0][1] < y < \
-            arr_coordinates[4][1][
-                1]:
-        load_script.serial_number_sprite.update()
-
+    load_script.down_button(pos)
 
 class Fon(pygame.sprite.Sprite):
     def __init__(self):
@@ -270,13 +233,13 @@ class Fon(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             0, 0)
 
+
 class Fon_Game(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites)
         self.image = tile_images["fon2"]
         self.rect = self.image.get_rect().move(
             0, 0)
-
 
 
 class Bomb1LVLDraw(pygame.sprite.Sprite):
@@ -341,6 +304,47 @@ class LoadEasyScript:
         else:
             self.indicator_button.update()
 
+    def down_button(self, pos):
+        x, y = pos
+        arr_coordinates = load_script.arr_coordinates
+        if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < \
+                arr_coordinates[0][1][
+                    1]:
+            self.sorted_coordinates(pos)
+            load_script.count_button_click += 1
+        elif arr_coordinates[5][0][0] < x < arr_coordinates[5][1][0] and arr_coordinates[5][0][1] < y < \
+                arr_coordinates[5][1][
+                    1]:
+            load_script.func_button_click(load_script.count_button_click)
+
+    def sorted_coordinates(self, pos):
+        x, y = pos
+        arr_coordinates = load_script.arr_coordinates
+        if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < \
+                arr_coordinates[0][1][
+                    1]:
+            load_script.button.update()
+            load_script.mini_button.update()
+        elif arr_coordinates[1][0][0] < x < arr_coordinates[1][1][0] and arr_coordinates[1][0][1] < y < \
+                arr_coordinates[1][1][
+                    1]:
+            load_script.red_wire.update()
+            load_script.wire_script("red")
+        elif arr_coordinates[2][0][0] < x < arr_coordinates[2][1][0] and arr_coordinates[2][0][1] < y < \
+                arr_coordinates[2][1][
+                    1]:
+            load_script.blue_wire.update()
+            load_script.wire_script("blue")
+        elif arr_coordinates[3][0][0] < x < arr_coordinates[3][1][0] and arr_coordinates[3][0][1] < y < \
+                arr_coordinates[3][1][
+                    1]:
+            load_script.green_wire.update()
+            load_script.wire_script("green")
+        elif arr_coordinates[4][0][0] < x < arr_coordinates[4][1][0] and arr_coordinates[4][0][1] < y < \
+                arr_coordinates[4][1][
+                    1]:
+            load_script.serial_number_sprite.update()
+
 
 class CheckWinner:
     def __init__(self):
@@ -352,9 +356,10 @@ class CheckWinner:
     def control_check(self):
         self.running = False
 
+
 def lose_window():
     fon_lose_menu = AnimatedSprite(pygame.transform.scale(load_image('lose_main.png'), (2000, 600)), 2, 1, 0, 0, 1000,
-                                     600, False)
+                                   600, False)
     time = datetime.now()
     while True:
         for event in pygame.event.get():
@@ -370,14 +375,43 @@ def lose_window():
         pygame.display.flip()
 
 
+class ManageDataBase:
+    def __init__(self):
+        self.con = sqlite3.connect("data_base.sqlite")
+        self.cur = self.con.cursor()
+
+    def create_a_cell(self):
+        self.cur.execute("""INSERT INTO statistic(record_time, count_win) VALUES(0, 0);""").fetchall()
+
+    def changing_a_cell(self, parameter):
+        if parameter == "win":
+            self.cur.execute("""UPDATE statistic SET count_win = count_win + 1;""")
+        else:
+            update_query = "UPDATE statistic SET record_time = ?;"
+            self.cur.execute(update_query, (parameter,))
+        self.con.commit()
+
+    def return_data_base(self):
+        return self.cur.execute("""SELECT * FROM statistic""").fetchall()
+
+    def close(self):
+        self.con.close()
+
+
+manage_data_base = ManageDataBase()
+if not manage_data_base.return_data_base():
+    manage_data_base.create_a_cell()
 
 while True:
     all_sprites = pygame.sprite.Group()
-    if start_screen() == "easy_level":
-        easy_levels = [("blue", 1, "number_517B.png"), ("green", 6, 'number_EA500.png'), ("blue", 3, "number_22081921.png"),
-          ("red", 2, "number_3A3CC9.png")]
+    res = start_screen()
+    if res == "easy_level":
+        easy_levels = [("blue", 1, "number_517B.png"), ("green", 6, 'number_EA500.png'),
+                       ("blue", 3, "number_22081921.png"),
+                       ("red", 2, "number_3A3CC9.png")]
         generate_level()
-        level = choice(easy_levels)
+        # level = choice(easy_levels)
+        level = ("blue", 1, "number_517B.png")
         load_script = LoadEasyScript(*level)
         clock_in_half_hour = datetime.now() + timedelta(seconds=60)
         check_winner = CheckWinner()
@@ -415,7 +449,9 @@ while True:
                     push_button(pos)
             pygame.display.flip()
         if load_script.ending:
-            finish_menu()
+            finish_menu(time.seconds, res)
         else:
             lose_window()
+
+
     main_cycle()
