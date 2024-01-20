@@ -278,7 +278,6 @@ class LoadEasyScript:
                                     "number_3A3CC9.png": 7}
         self.arr_coordinates = [((459, 290), (585, 383)), ((81, 193), (110, 269)), ((139, 190), (170, 268)),
                                 ((200, 191), (230, 268)), ((104, 84), (250, 130)), ((673, 334), (715, 381))]
-        self.arr_wire = ["blue", "red", "green"]
 
         self.button = AnimatedSprite(pygame.transform.scale(load_image('button.png'), (544, 200)), 2, 1, 380, 240, 272,
                                      200, False)
@@ -364,25 +363,25 @@ class LoadEasyScript:
 
 
 class LoadMediumScript:
-    def __init__(self, wire, button_click, serial_number):
+    def __init__(self, wire, sequence, serial_number):
         self.ending = False
+        self.click = False
         self.wire = wire
-        self.button_click = button_click
+        self.sequence = sequence
+        self.sequence_count = 0
         self.count_button_click = 0
         self.serial_number = serial_number
-        self.dict_serial_numbers = {'number_EA500.png': 2, "number_22081921.png": 3, "number_517B.png": 4,
-                                    "number_3A3CC9.png": 7}
         self.arr_coordinates = [((60, 191), (89, 268)),
                                 ((110, 191), (138, 267)),
                                 ((163, 192), (188, 268)),
                                 ((211, 191), (236, 266)),
 
                                 ((651, 231), (718, 300)),
-                                ((73, 233), (796, 296)),
+                                ((730, 233), (796, 296)),
                                 ((652, 312), (717, 375)),
-                                ((733, 313), (797, 375))
+                                ((733, 313), (797, 375)),
+                                ((344, 475), (404, 517))
                                 ]
-        self.arr_wire = ["blue", "red", "green"]
 
         self.red_wire = AnimatedSprite(pygame.transform.scale(load_image('red_wire.png'), (60, 80)), 2, 1, 60, 190, 30,
                                        80, True)
@@ -396,48 +395,64 @@ class LoadMediumScript:
                                           190,
                                           30,
                                           80, True)
-        self.pazzle_conjugate_operator = AnimatedSprite(pygame.transform.scale(load_image('pazzle_conjugate_operator.png'), (140, 70)), 2, 1, 650,
-                                          230,
-                                          70,
-                                          70, True)
-        self.pazzle_transposition_matrix = AnimatedSprite(pygame.transform.scale(load_image('pazzle_transposition_matrix.png'), (140, 70)), 2, 1, 730,
-                                          230,
-                                          70,
-                                          70, True)
-        self.pazzle_tensor_product = AnimatedSprite(pygame.transform.scale(load_image('pazzle_tensor_product.png'), (140, 70)), 2, 1, 730,
-                                          310,
-                                          70,
-                                          70, True)
-        self.pazzle_matrix_unit = AnimatedSprite(pygame.transform.scale(load_image('pazzle_matrix_unit.png'), (140, 70)), 2, 1, 650,
-                                          310,
-                                          70,
-                                          70, True)
+        self.pazzle_conjugate_operator = AnimatedSprite(
+            pygame.transform.scale(load_image('pazzle_conjugate_operator.png'), (140, 70)), 2, 1, 650,
+            230,
+            70,
+            70, True)
+        self.pazzle_transposition_matrix = AnimatedSprite(
+            pygame.transform.scale(load_image('pazzle_transposition_matrix.png'), (140, 70)), 2, 1, 730,
+            230,
+            70,
+            70, True)
+        self.pazzle_tensor_product = AnimatedSprite(
+            pygame.transform.scale(load_image('pazzle_tensor_product.png'), (140, 70)), 2, 1, 730,
+            310,
+            70,
+            70, True)
+        self.pazzle_matrix_unit = AnimatedSprite(
+            pygame.transform.scale(load_image('pazzle_matrix_unit.png'), (140, 70)), 2, 1, 650,
+            310,
+            70,
+            70, True)
         self.indicator_wire = AnimatedSpriteIndicator(pygame.transform.scale(load_image('indicator.png'), (80, 40)), 2,
                                                       1, 246,
                                                       155,
                                                       40, 40, True)
-        self.indicator_pazzle = AnimatedSpriteIndicator(pygame.transform.scale(load_image('indicator_metal.png'), (80, 40)), 2,
-                                                      1, 850,
-                                                      190,
-                                                      40, 40, True)
-        self.code_number = AnimatedSpriteIndicator(pygame.transform.scale(load_image('code_0_1_1.png'), (380, 54)), 2,
-                                                      1, 340,
-                                                      470,
-                                                      190, 54, True)
-        self.arr_indicators = {self.indicator_wire: False}
+        self.indicator_pazzle = AnimatedSpriteIndicator(
+            pygame.transform.scale(load_image('indicator_metal.png'), (80, 40)), 2,
+            1, 850,
+            190,
+            40, 40, True)
+        self.code_number = AnimatedSpriteIndicator(pygame.transform.scale(load_image(serial_number), (380, 54)), 2,
+                                                   1, 340,
+                                                   470,
+                                                   190, 54, False)
+        self.arr_indicators = {self.indicator_wire: False, self.indicator_pazzle: False}
 
     def wire_script(self, wire):
         if wire != self.wire:
-            pass
-            # check_winner.control_check()
+            check_winner.control_check()
         else:
-            pass
-            # self.indicator_wire.update()
+            self.indicator_wire.update()
+
+    def sequence_fun(self, symbol):
+        if not self.arr_indicators[self.indicator_pazzle]:
+            if symbol == self.sequence[self.sequence_count]:
+                self.sequence_count += 1
+            else:
+                check_winner.control_check()
+            if self.sequence_count == 4:
+                self.indicator_pazzle.update()
 
     def down_button(self, pos):
         x, y = pos
         arr_coordinates = load_script.arr_coordinates
         print(x, y)
+        if arr_coordinates[8][0][0] < x < arr_coordinates[8][1][0] and arr_coordinates[8][0][1] < y < \
+                arr_coordinates[8][1][
+                    1]:
+            self.code_number.update()
 
     def sorted_coordinates(self, pos):
         x, y = pos
@@ -456,30 +471,36 @@ class LoadMediumScript:
                 arr_coordinates[2][1][
                     1]:
             load_script.green_wire.update()
-            load_script.wire_script("green_wire")
+            load_script.wire_script("green")
         elif arr_coordinates[3][0][0] < x < arr_coordinates[3][1][0] and arr_coordinates[3][0][1] < y < \
                 arr_coordinates[3][1][
                     1]:
             load_script.people_wire.update()
-            load_script.wire_script("people_wire")
+            load_script.wire_script("people")
         elif arr_coordinates[4][0][0] < x < arr_coordinates[4][1][0] and arr_coordinates[4][0][1] < y < \
                 arr_coordinates[4][1][
                     1]:
             self.pazzle_conjugate_operator.update()
+            self.sequence_fun("pazzle_conjugate_operator")
         elif arr_coordinates[5][0][0] < x < arr_coordinates[5][1][0] and arr_coordinates[5][0][1] < y < \
                 arr_coordinates[5][1][
                     1]:
             self.pazzle_transposition_matrix.update()
+            self.sequence_fun("pazzle_transposition_matrix")
         elif arr_coordinates[6][0][0] < x < arr_coordinates[6][1][0] and arr_coordinates[6][0][1] < y < \
                 arr_coordinates[6][1][
                     1]:
             self.pazzle_matrix_unit.update()
+            self.sequence_fun("pazzle_matrix_unit")
         elif arr_coordinates[7][0][0] < x < arr_coordinates[7][1][0] and arr_coordinates[7][0][1] < y < \
                 arr_coordinates[7][1][
                     1]:
             self.pazzle_tensor_product.update()
-
-
+            self.sequence_fun("pazzle_tensor_product")
+        elif arr_coordinates[8][0][0] < x < arr_coordinates[8][1][0] and arr_coordinates[8][0][1] < y < \
+                arr_coordinates[8][1][
+                    1]:
+            self.code_number.update()
 
 
 class CheckWinner:
@@ -542,25 +563,36 @@ while True:
     all_sprites = pygame.sprite.Group()
     res = start_screen()
     if res == "easy_level":
+        generate_level('bomb')
         easy_levels = [("blue", 1, "number_517B.png"),
                        ("green", 6, 'number_EA500.png'),
                        ("blue", 3, "number_22081921.png"),
                        ("red", 2, "number_3A3CC9.png")]
-        generate_level('bomb')
-        # level = choice(easy_levels)
-        level = ("blue", 1, "number_517B.png")
+        level = choice(easy_levels)
         load_script = LoadEasyScript(*level)
     if res == "medium_level":
-        easy_levels = [("blue", 1, "number_517B.png"), ("green", 6, 'number_EA500.png'),
-                       ("blue", 3, "number_22081921.png"),
-                       ("red", 2, "number_3A3CC9.png")]
+        medium_levels = [
+            ("blue", (
+                "pazzle_transposition_matrix", "pazzle_conjugate_operator", "pazzle_tensor_product",
+                "pazzle_matrix_unit"),
+            "code_1_1_1.png"),
+            ("red", (
+                'pazzle_transposition_matrix', 'pazzle_tensor_product', 'pazzle_conjugate_operator',
+                'pazzle_matrix_unit'),
+            "code_1_0_1.png"),
+            ("green", (
+                'pazzle_conjugate_operator', 'pazzle_matrix_unit', 'pazzle_tensor_product',
+                'pazzle_transposition_matrix'),
+            "code_0_1_1.png"),
+            ("people", (
+                'pazzle_matrix_unit', 'pazzle_conjugate_operator', 'pazzle_tensor_product',
+                'pazzle_transposition_matrix'),
+            "code_1_1_0.png")
+        ]
         generate_level('bomb_medium_level')
-        # level = choice(easy_levels)
-        level = ("blue", 1, "number_517B.png")
+        level = choice(medium_levels)
         load_script = LoadMediumScript(*level)
-    elif res == 'bomb_medium_level':
-        pass
-    clock_in_half_hour = datetime.now() + timedelta(seconds=60)
+    clock_in_half_hour = datetime.now() + timedelta(seconds=61)  # <== Тут можно менять время
     check_winner = CheckWinner()
 
 
@@ -597,4 +629,6 @@ while True:
                     push_button(pos)
             pygame.display.flip()
         finish_menu(time.seconds, res) if load_script.ending else lose_window()
+
+
     main_cycle()
