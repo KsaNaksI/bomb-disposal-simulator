@@ -84,21 +84,24 @@ def load_image(name, colorkey=None):
 
 
 tile_images = {
-    'fon': pygame.transform.scale(load_image('fon_menu.png'), (1000, 600)),
+    'fon_menu': pygame.transform.scale(load_image('fon_menu.png'), (1000, 600)),
     'bomb': pygame.transform.scale(load_image('bomb_3_lvl.png'), (900, 500)),
-    'fon2': pygame.transform.scale(load_image('fon2.png'), (1000, 600))
+    'fon_easy_level': pygame.transform.scale(load_image('fon2.png'), (1000, 600)),
+    'bomb_medium_level': pygame.transform.scale(load_image('bomb_medium.png'), (900, 500))
+
 }
-DICT_COMPLEXITY = {"easy_level": "Легкая"}
+DICT_COMPLEXITY = {"easy_level": "Легкая", 'medium_level': "Средняя"}
 
 
 def terminate():
+    manage_data_base.close()
     pygame.quit()
     sys.exit()
 
 
-def generate_level():
+def generate_level(complexity):
     Fon_Game()
-    Bomb1LVLDraw(1, 1)
+    BombDraw(complexity)
 
 
 def main_menu():
@@ -111,8 +114,12 @@ def main_menu():
     easy_level_button = AnimatedSprite(pygame.transform.scale(load_image('easy_level_button.png'), (600, 150)),
                                        2, 1, 500, 10, 300,
                                        150, False)
+    medium_level_button = AnimatedSprite(pygame.transform.scale(load_image('medium_level_button.png'), (600, 150)),
+                                         2, 1, 500, 230, 300,
+                                         150, False)
     flag_button_back = True
     flag_button_easy_level = True
+    flag_medium_level_button = True
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -131,12 +138,20 @@ def main_menu():
                 elif (not 500 < x < 800 or not 10 < y < 150) and not flag_button_easy_level:
                     easy_level_button.update()
                     flag_button_easy_level = True
+                if 500 < x < 800 and 230 < y < 390 and flag_medium_level_button:
+                    medium_level_button.update()
+                    flag_medium_level_button = False
+                elif (not 500 < x < 800 or not 230 < y < 390) and not flag_medium_level_button:
+                    medium_level_button.update()
+                    flag_medium_level_button = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if 10 < x < 390 and 10 < y < 160:
                     return "main_menu"
                 if 500 < x < 800 and 10 < y < 150:
                     return "easy_level"
+                if 500 < x < 800 and 230 < y < 390:
+                    return "medium_level"
         all_sprites.draw(screen)
         pygame.display.flip()
 
@@ -223,13 +238,15 @@ def finish_menu(time, complexity):
 def push_button(pos):
     load_script.sorted_coordinates(pos)
 
+
 def down_button(pos):
     load_script.down_button(pos)
+
 
 class Fon(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites)
-        self.image = tile_images["fon"]
+        self.image = tile_images['fon_menu']
         self.rect = self.image.get_rect().move(
             0, 0)
 
@@ -237,17 +254,17 @@ class Fon(pygame.sprite.Sprite):
 class Fon_Game(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites)
-        self.image = tile_images["fon2"]
+        self.image = tile_images['fon_easy_level']
         self.rect = self.image.get_rect().move(
             0, 0)
 
 
-class Bomb1LVLDraw(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
+class BombDraw(pygame.sprite.Sprite):
+    def __init__(self, complexity):
         super().__init__(all_sprites)
-        self.image = tile_images["bomb"]
+        self.image = tile_images[complexity]
         self.rect = self.image.get_rect().move(
-            pos_x * 50, pos_y * 50)
+            50, 50)
 
 
 class LoadEasyScript:
@@ -346,6 +363,125 @@ class LoadEasyScript:
             load_script.serial_number_sprite.update()
 
 
+class LoadMediumScript:
+    def __init__(self, wire, button_click, serial_number):
+        self.ending = False
+        self.wire = wire
+        self.button_click = button_click
+        self.count_button_click = 0
+        self.serial_number = serial_number
+        self.dict_serial_numbers = {'number_EA500.png': 2, "number_22081921.png": 3, "number_517B.png": 4,
+                                    "number_3A3CC9.png": 7}
+        self.arr_coordinates = [((60, 191), (89, 268)),
+                                ((110, 191), (138, 267)),
+                                ((163, 192), (188, 268)),
+                                ((211, 191), (236, 266)),
+
+                                ((651, 231), (718, 300)),
+                                ((73, 233), (796, 296)),
+                                ((652, 312), (717, 375)),
+                                ((733, 313), (797, 375))
+                                ]
+        self.arr_wire = ["blue", "red", "green"]
+
+        self.red_wire = AnimatedSprite(pygame.transform.scale(load_image('red_wire.png'), (60, 80)), 2, 1, 60, 190, 30,
+                                       80, True)
+        self.blue_wire = AnimatedSprite(pygame.transform.scale(load_image('blue_wire.png'), (60, 80)), 2, 1, 110, 190,
+                                        30,
+                                        80, True)
+        self.green_wire = AnimatedSprite(pygame.transform.scale(load_image('green_wire.png'), (60, 80)), 2, 1, 160, 190,
+                                         30,
+                                         80, True)
+        self.people_wire = AnimatedSprite(pygame.transform.scale(load_image('people_wire.png'), (60, 80)), 2, 1, 210,
+                                          190,
+                                          30,
+                                          80, True)
+        self.pazzle_conjugate_operator = AnimatedSprite(pygame.transform.scale(load_image('pazzle_conjugate_operator.png'), (140, 70)), 2, 1, 650,
+                                          230,
+                                          70,
+                                          70, True)
+        self.pazzle_transposition_matrix = AnimatedSprite(pygame.transform.scale(load_image('pazzle_transposition_matrix.png'), (140, 70)), 2, 1, 730,
+                                          230,
+                                          70,
+                                          70, True)
+        self.pazzle_tensor_product = AnimatedSprite(pygame.transform.scale(load_image('pazzle_tensor_product.png'), (140, 70)), 2, 1, 730,
+                                          310,
+                                          70,
+                                          70, True)
+        self.pazzle_matrix_unit = AnimatedSprite(pygame.transform.scale(load_image('pazzle_matrix_unit.png'), (140, 70)), 2, 1, 650,
+                                          310,
+                                          70,
+                                          70, True)
+        self.indicator_wire = AnimatedSpriteIndicator(pygame.transform.scale(load_image('indicator.png'), (80, 40)), 2,
+                                                      1, 246,
+                                                      155,
+                                                      40, 40, True)
+        self.indicator_pazzle = AnimatedSpriteIndicator(pygame.transform.scale(load_image('indicator_metal.png'), (80, 40)), 2,
+                                                      1, 850,
+                                                      190,
+                                                      40, 40, True)
+        self.code_number = AnimatedSpriteIndicator(pygame.transform.scale(load_image('code_0_1_1.png'), (380, 54)), 2,
+                                                      1, 340,
+                                                      470,
+                                                      190, 54, True)
+        self.arr_indicators = {self.indicator_wire: False}
+
+    def wire_script(self, wire):
+        if wire != self.wire:
+            pass
+            # check_winner.control_check()
+        else:
+            pass
+            # self.indicator_wire.update()
+
+    def down_button(self, pos):
+        x, y = pos
+        arr_coordinates = load_script.arr_coordinates
+        print(x, y)
+
+    def sorted_coordinates(self, pos):
+        x, y = pos
+        arr_coordinates = load_script.arr_coordinates
+        if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < \
+                arr_coordinates[0][1][
+                    1]:
+            load_script.red_wire.update()
+            load_script.wire_script("red")
+        elif arr_coordinates[1][0][0] < x < arr_coordinates[1][1][0] and arr_coordinates[1][0][1] < y < \
+                arr_coordinates[1][1][
+                    1]:
+            load_script.blue_wire.update()
+            load_script.wire_script("blue")
+        elif arr_coordinates[2][0][0] < x < arr_coordinates[2][1][0] and arr_coordinates[2][0][1] < y < \
+                arr_coordinates[2][1][
+                    1]:
+            load_script.green_wire.update()
+            load_script.wire_script("green_wire")
+        elif arr_coordinates[3][0][0] < x < arr_coordinates[3][1][0] and arr_coordinates[3][0][1] < y < \
+                arr_coordinates[3][1][
+                    1]:
+            load_script.people_wire.update()
+            load_script.wire_script("people_wire")
+        elif arr_coordinates[4][0][0] < x < arr_coordinates[4][1][0] and arr_coordinates[4][0][1] < y < \
+                arr_coordinates[4][1][
+                    1]:
+            self.pazzle_conjugate_operator.update()
+        elif arr_coordinates[5][0][0] < x < arr_coordinates[5][1][0] and arr_coordinates[5][0][1] < y < \
+                arr_coordinates[5][1][
+                    1]:
+            self.pazzle_transposition_matrix.update()
+        elif arr_coordinates[6][0][0] < x < arr_coordinates[6][1][0] and arr_coordinates[6][0][1] < y < \
+                arr_coordinates[6][1][
+                    1]:
+            self.pazzle_matrix_unit.update()
+        elif arr_coordinates[7][0][0] < x < arr_coordinates[7][1][0] and arr_coordinates[7][0][1] < y < \
+                arr_coordinates[7][1][
+                    1]:
+            self.pazzle_tensor_product.update()
+
+
+
+
 class CheckWinner:
     def __init__(self):
         self.running = True
@@ -406,15 +542,26 @@ while True:
     all_sprites = pygame.sprite.Group()
     res = start_screen()
     if res == "easy_level":
-        easy_levels = [("blue", 1, "number_517B.png"), ("green", 6, 'number_EA500.png'),
+        easy_levels = [("blue", 1, "number_517B.png"),
+                       ("green", 6, 'number_EA500.png'),
                        ("blue", 3, "number_22081921.png"),
                        ("red", 2, "number_3A3CC9.png")]
-        generate_level()
+        generate_level('bomb')
         # level = choice(easy_levels)
         level = ("blue", 1, "number_517B.png")
         load_script = LoadEasyScript(*level)
-        clock_in_half_hour = datetime.now() + timedelta(seconds=60)
-        check_winner = CheckWinner()
+    if res == "medium_level":
+        easy_levels = [("blue", 1, "number_517B.png"), ("green", 6, 'number_EA500.png'),
+                       ("blue", 3, "number_22081921.png"),
+                       ("red", 2, "number_3A3CC9.png")]
+        generate_level('bomb_medium_level')
+        # level = choice(easy_levels)
+        level = ("blue", 1, "number_517B.png")
+        load_script = LoadMediumScript(*level)
+    elif res == 'bomb_medium_level':
+        pass
+    clock_in_half_hour = datetime.now() + timedelta(seconds=60)
+    check_winner = CheckWinner()
 
 
     def main_cycle():
@@ -437,7 +584,8 @@ while True:
             time_render = f2.render(str(time.seconds), False,
                                     (255, 0, 0))
             screen.blit(time_render, (155, 355))
-            screen.blit(count_button_click, (520, 165))
+            if res != "medium_level":
+                screen.blit(count_button_click, (520, 165))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     check_winner.control_check()
@@ -448,10 +596,5 @@ while True:
                 if event.type == pygame.MOUSEBUTTONUP:
                     push_button(pos)
             pygame.display.flip()
-        if load_script.ending:
-            finish_menu(time.seconds, res)
-        else:
-            lose_window()
-
-
+        finish_menu(time.seconds, res) if load_script.ending else lose_window()
     main_cycle()
