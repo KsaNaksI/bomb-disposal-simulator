@@ -680,7 +680,7 @@ class LoadHardScript:
                 arr_coordinates[4][1][
                     1]:
             self.yellow_wire.update()
-            self.wire_script("people")
+            self.wire_script("yellow")
         elif arr_coordinates[5][0][0] < x < arr_coordinates[5][1][0] and arr_coordinates[5][0][1] < y < \
                 arr_coordinates[5][1][
                     1]:
@@ -824,7 +824,7 @@ while True:
                 "pazzle_transposition_matrix"),
              "code_1_1_0.png", "number_22081921.png", 7),
             ("people", (
-                'pazzle_matrix_unit', 'pazzle_conjugate_operator', "pazzle_tensor_product",
+                'pazzle_matrix_unit', 'pazzle_conjugate_operator', 'pazzle_tensor_product',
                 'pazzle_transposition_matrix'),
              "code_1_1_0.png", "number_3A3CC9.png", 9),
             ("yellow", (
@@ -834,7 +834,7 @@ while True:
         ]
         level = choice(medium_levels)
         load_script = LoadHardScript(*level)
-    clock_in_half_hour = datetime.now() + timedelta(seconds=161)  # <== Тут можно менять время
+    clock_in_half_hour = datetime.now() + timedelta(seconds=1691)  # <== Тут можно менять время
     check_winner = CheckWinner()
 
 
