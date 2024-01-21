@@ -539,7 +539,13 @@ class LoadHardScript:
             ((313, 434), (363, 467)),
             ((311, 492), (562, 541)),
             ((377, 243), (515, 351)),
-            ((555, 273), (583, 302))
+            ((555, 273), (583, 302)),
+
+            ((671, 223), (736, 286)),
+            ((750, 221), (817, 286)),
+            ((672, 301), (740, 366)),
+            ((750, 300), (819, 366))
+
         ]
 
         self.red_wire = AnimatedSprite(pygame.transform.scale(load_image('red_wire.png'), (60, 80)), 2, 1, 60, 200, 30,
@@ -578,6 +584,11 @@ class LoadHardScript:
             300,
             70,
             70, True)
+        self.indicator_button = AnimatedSpriteIndicator(
+            pygame.transform.scale(load_image('indicator_metal.png'), (80, 40)),
+            2, 1, 545,
+            150,
+            40, 40, True)
         self.indicator_wire = AnimatedSpriteIndicator(pygame.transform.scale(load_image('indicator.png'), (80, 40)), 2,
                                                       1, 246,
                                                       155,
@@ -607,10 +618,10 @@ class LoadHardScript:
 
     def wire_script(self, wire):
         pass
-        # if wire != self.wire:
-        #     check_winner.control_check()
-        # else:
-        #     self.indicator_wire.update()
+        if wire != self.wire:
+            check_winner.control_check()
+        else:
+            self.indicator_wire.update()
 
     def func_button_click(self, button_count):
         if button_count != self.button_click:
@@ -620,13 +631,13 @@ class LoadHardScript:
 
     def sequence_fun(self, symbol):
         pass
-        # if not self.arr_indicators[self.indicator_pazzle]:
-        #     if symbol == self.sequence[self.sequence_count]:
-        #         self.sequence_count += 1
-        #     else:
-        #         check_winner.control_check()
-        #     if self.sequence_count == 4:
-        #         self.indicator_pazzle.update()
+        if not self.arr_indicators[self.indicator_pazzle]:
+            if symbol == self.sequence[self.sequence_count]:
+                self.sequence_count += 1
+            else:
+                check_winner.control_check()
+            if self.sequence_count == 4:
+                self.indicator_pazzle.update()
 
     def down_button(self, pos):
         x, y = pos
@@ -636,7 +647,6 @@ class LoadHardScript:
                 arr_coordinates[5][1][
                     1]:
             self.code_number.update()
-            self.sorted_coordinates(pos)
         elif arr_coordinates[7][0][0] < x < arr_coordinates[7][1][0] and arr_coordinates[7][0][1] < y < \
                 arr_coordinates[7][1][
                     1]:
@@ -688,6 +698,26 @@ class LoadHardScript:
                 arr_coordinates[8][1][
                     1]:
             self.func_button_click(self.count_button_click)
+        elif arr_coordinates[9][0][0] < x < arr_coordinates[9][1][0] and arr_coordinates[9][0][1] < y < \
+                arr_coordinates[9][1][
+                    1]:
+            self.pazzle_conjugate_operator.update()
+            self.sequence_fun("pazzle_conjugate_operator")
+        elif arr_coordinates[10][0][0] < x < arr_coordinates[10][1][0] and arr_coordinates[10][0][1] < y < \
+                arr_coordinates[10][1][
+                    1]:
+            self.pazzle_transposition_matrix.update()
+            self.sequence_fun("pazzle_transposition_matrix")
+        elif arr_coordinates[11][0][0] < x < arr_coordinates[11][1][0] and arr_coordinates[11][0][1] < y < \
+                arr_coordinates[11][1][
+                    1]:
+            self.pazzle_matrix_unit.update()
+            self.sequence_fun("pazzle_matrix_unit")
+        elif arr_coordinates[12][0][0] < x < arr_coordinates[12][1][0] and arr_coordinates[12][0][1] < y < \
+                arr_coordinates[12][1][
+                    1]:
+            self.pazzle_tensor_product.update()
+            self.sequence_fun("pazzle_tensor_product")
 
 
 class CheckWinner:
@@ -784,19 +814,23 @@ while True:
         medium_levels = [
             ("blue", (
                 "pazzle_transposition_matrix", "pazzle_conjugate_operator", "pazzle_tensor_product",
-                "pazzle_matrix_unit"), "code_1_1_1.png", "number_517B.png", 3),
+                "pazzle_matrix_unit"), "code_1_0_1.png", "number_517B.png", 3),
             ("red", (
-                'pazzle_transposition_matrix', 'pazzle_tensor_product', 'pazzle_conjugate_operator',
-                'pazzle_matrix_unit'),
-             "code_1_0_1.png", "number_EA500.png", 4),
+                "pazzle_transposition_matrix", "pazzle_tensor_product",
+                "pazzle_matrix_unit", "pazzle_conjugate_operator"),
+             "code_1_1_1.png", "number_EA500.png", 4),
             ("green", (
-                'pazzle_conjugate_operator', 'pazzle_matrix_unit', 'pazzle_tensor_product',
-                'pazzle_transposition_matrix'),
-             "code_0_1_1.png", "number_22081921.png", 7),
+                "pazzle_tensor_product", "pazzle_matrix_unit", "pazzle_conjugate_operator",
+                "pazzle_transposition_matrix"),
+             "code_1_1_0.png", "number_22081921.png", 7),
             ("people", (
-                'pazzle_matrix_unit', 'pazzle_conjugate_operator', 'pazzle_tensor_product',
+                'pazzle_matrix_unit', 'pazzle_conjugate_operator', 'pazzle_conjugate_operator',
                 'pazzle_transposition_matrix'),
-             "code_1_1_0.png", "number_3A3CC9.png", 9)
+             "code_1_1_0.png", "number_3A3CC9.png", 9),
+            ("yellow", (
+                'pazzle_matrix_unit', 'pazzle_tensor_product', 'pazzle_tensor_product',
+                'pazzle_transposition_matrix'),
+             "code_0_1_1.png", "number_22081921.png", 5)
         ]
         level = choice(medium_levels)
         load_script = LoadHardScript(*level)
@@ -824,8 +858,10 @@ while True:
             time_render = f2.render(str(time.seconds), False,
                                     (255, 0, 0))
             screen.blit(time_render, (155, 355))
-            if res != "medium_level":
+            if res == "easy_level":
                 screen.blit(count_button_click, (520, 165))
+            elif res == "hard_level":
+                screen.blit(count_button_click, (445, 158))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     check_winner.control_check()
@@ -837,6 +873,4 @@ while True:
                     push_button(pos)
             pygame.display.flip()
         finish_menu(time.seconds, res) if load_script.ending else lose_window()
-
-
     main_cycle()
