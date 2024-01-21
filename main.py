@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import sys
 import os
@@ -175,6 +177,27 @@ def level_selection_menu():
 
 
 # Стартовое окно, если сложность из меню выбрана, то возвращает её, если нет, то рисует себя по новой
+R = 10
+
+
+class Circle:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.vx = -100
+        self.vy = -100
+        self.color = random.choice([WHILE, RED, GREEN, BLACK, BLUE])
+
+    def draw_circle(self, screen, clock):
+        if self.x >= W - R or self.x <= R:
+            self.vx = -self.vx
+        self.x += self.vx * (clock / 1000)
+        if self.y >= H - R or self.y <= R:
+            self.vy = -self.vy
+        self.y += self.vy * (clock / 1000)
+        pygame.draw.circle(screen, self.color, (self.x, self.y), R)
+
+
 def start_screen():
     fon = pygame.transform.scale(load_image('fon_menu.png'), (W, H))
     screen.blit(fon, (0, 0))
@@ -184,7 +207,8 @@ def start_screen():
                                   300,
                                   150, False)
     flag_button_start = True
-
+    arr = []
+    clock = pygame.time.Clock()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -205,6 +229,10 @@ def start_screen():
                             300,
                             150, False)
                         flag_button_start = True
+                else:
+                    x, y = event.pos
+                    clock.tick()
+                    arr.append(Circle(x, y))
             elif event.type == pygame.MOUSEMOTION:
                 x, y = event.pos
                 if 349 < x < 659 and 202 < y < 346 and flag_button_start:
@@ -214,6 +242,9 @@ def start_screen():
                     button_start.update()
                     flag_button_start = True
         all_sprites.draw(screen)
+        time = clock.tick()
+        for i in arr:
+            i.draw_circle(screen, time)
         pygame.display.flip()
 
 
@@ -889,4 +920,6 @@ while True:
         finish_menu(time.seconds,
                     res) if load_script.ending else lose_window()  # В зависимости от того, какой был конец,
         # выбирается по новой
+
+
     main_cycle()  # Вызывается игрововой цикл
