@@ -17,6 +17,7 @@ screen = pygame.display.set_mode(SIZE)
 all_sprites = pygame.sprite.Group()
 
 
+# Класс со спрайтами я немного изменил, последний параметр нужен чтобы спрайт не начинался сначало
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y, size_x, size_y, flag, parent=None):
         super().__init__(all_sprites)
@@ -54,18 +55,20 @@ class AnimatedSprite(pygame.sprite.Sprite):
             self.image = self.frames[self.cur_frame]
 
 
+# это тоже самое, только для индикаторов
 class AnimatedSpriteIndicator(AnimatedSprite):
     def __init__(self, sheet, columns, rows, x, y, size_x, size_y, flag):
         super().__init__(sheet, columns, rows, x, y, size_x, size_y, flag, self)
         self.count_indicator = 0
 
-    def check(self):
+    def check(self):  # когда все модули решены, он заканчивает игровой цикл победой
         load_script.arr_indicators[self] = True
         if all(list(load_script.arr_indicators.values())):
             check_winner.control_check()
             load_script.ending = True
 
 
+# Для картинок
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     # если файл не существует, то выходим
@@ -99,11 +102,13 @@ def terminate():
     sys.exit()
 
 
+# complexity - какую именно картинку бомбы загрузить
 def generate_level(complexity):
     Fon_Game()
     BombDraw(complexity)
 
 
+# Меню где выбирается сложность уровня, из него можно вернуться обратно в стартовое окно
 def level_selection_menu():
     fon = pygame.transform.scale(load_image('fon_menu.png'), (W, H))
     screen.blit(fon, (0, 0))
@@ -169,6 +174,7 @@ def level_selection_menu():
         pygame.display.flip()
 
 
+# Стартовое окно, если сложность из меню выбрана, то возвращает её, если нет, то рисует себя по новой
 def start_screen():
     fon = pygame.transform.scale(load_image('fon_menu.png'), (W, H))
     screen.blit(fon, (0, 0))
@@ -211,6 +217,7 @@ def start_screen():
         pygame.display.flip()
 
 
+# Финишное окно
 def finish_menu(time, complexity):
     fon_finish_menu = AnimatedSprite(pygame.transform.scale(load_image('fon_win.png'), (2000, 600)), 2, 1,
                                      0, 0, 1000,
@@ -249,14 +256,17 @@ def finish_menu(time, complexity):
         pygame.display.flip()
 
 
+# Просто кидает все нажатия из основного игрового цикла в класс, который проверяет попали ли они на спрайт или нет
 def push_button(pos):
     load_script.sorted_coordinates(pos)
 
 
+# Тоже самое но отжатую кнопка
 def down_button(pos):
     load_script.down_button(pos)
 
 
+# Загружает фон в меню
 class Fon(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites)
@@ -265,6 +275,7 @@ class Fon(pygame.sprite.Sprite):
             0, 0)
 
 
+# Загружает фон в игре
 class Fon_Game(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites)
@@ -273,6 +284,7 @@ class Fon_Game(pygame.sprite.Sprite):
             0, 0)
 
 
+# Загружает модель бомбы
 class BombDraw(pygame.sprite.Sprite):
     def __init__(self, complexity):
         super().__init__(all_sprites)
@@ -281,6 +293,7 @@ class BombDraw(pygame.sprite.Sprite):
             50, 50)
 
 
+# Класс лёгкого уровня, принимает правильные параметры и работает со спрайтами
 class LoadEasyScript:
     def __init__(self, wire, button_click, serial_number):
         self.ending = False
@@ -348,7 +361,7 @@ class LoadEasyScript:
                     1]:
             self.func_button_click(self.count_button_click)
 
-    def sorted_coordinates(self, pos):
+    def sorted_coordinates(self, pos):  # Тут можно немножко запутаться
         x, y = pos
         arr_coordinates = self.arr_coordinates
         if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < \
@@ -469,7 +482,7 @@ class LoadMediumScript:
                     1]:
             self.code_number.update()
 
-    def sorted_coordinates(self, pos):
+    def sorted_coordinates(self, pos):  # Тут можно немножко запутаться
         x, y = pos
         arr_coordinates = load_script.arr_coordinates
         if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < \
@@ -653,7 +666,7 @@ class LoadHardScript:
             self.count_button_click += 1
             self.mini_button.update()
 
-    def sorted_coordinates(self, pos):
+    def sorted_coordinates(self, pos):  # Тут можно немножко запутаться
         x, y = pos
         arr_coordinates = load_script.arr_coordinates
         if arr_coordinates[0][0][0] < x < arr_coordinates[0][1][0] and arr_coordinates[0][0][1] < y < \
@@ -731,6 +744,7 @@ class CheckWinner:
         self.running = False
 
 
+# Окно проигрыша
 def lose_window():
     fon_lose_menu = AnimatedSprite(pygame.transform.scale(load_image('lose_main.png'), (2000, 600)), 2, 1, 0, 0, 1000,
                                    600, False)
@@ -742,13 +756,13 @@ def lose_window():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 return
         if time.second != datetime.now().second:
-            print(time.second, datetime.now().second)
             time = datetime.now()
             fon_lose_menu.update()
         all_sprites.draw(screen)
         pygame.display.flip()
 
 
+# Класс для бд
 class ManageDataBase:
     def __init__(self):
         self.con = sqlite3.connect("data_base.sqlite")
@@ -774,21 +788,21 @@ class ManageDataBase:
 
 manage_data_base = ManageDataBase()
 if not manage_data_base.return_data_base():
-    manage_data_base.create_a_cell()
+    manage_data_base.create_a_cell()  # если база пуста, он создает в ней нужные ячейки
 
 while True:
-    all_sprites = pygame.sprite.Group()
-    res = start_screen()
+    all_sprites = pygame.sprite.Group()  # после каждой победы/поражения спрайты чистятся
+    res = start_screen()  # Вызывается стартовой окно, тут будет результат из меню выбора сложности
     if res == "easy_level":
         generate_level('bomb')
-        easy_levels = [("blue", 1, "number_517B.png"),
+        easy_levels = [("blue", 1, "number_517B.png"),  # список с уровнями
                        ("green", 6, 'number_EA500.png'),
                        ("blue", 3, "number_22081921.png"),
                        ("red", 2, "number_3A3CC9.png")]
-        level = choice(easy_levels)
-        load_script = LoadEasyScript(*level)
+        level = choice(easy_levels)  # Выбирается один
+        load_script = LoadEasyScript(*level)  # Запуск
     if res == "medium_level":
-        medium_levels = [
+        medium_levels = [  # список с уровнями
             ("blue", (
                 "pazzle_transposition_matrix", "pazzle_conjugate_operator", "pazzle_tensor_product",
                 "pazzle_matrix_unit"),
@@ -807,11 +821,11 @@ while True:
              "code_1_1_0.png")
         ]
         generate_level('bomb_medium_level')
-        level = choice(medium_levels)
-        load_script = LoadMediumScript(*level)
+        level = choice(medium_levels)  # Выбирается один
+        load_script = LoadMediumScript(*level)  # Запуск
     if res == "hard_level":
         generate_level('bomb_hard_level')
-        medium_levels = [
+        medium_levels = [  # список с уровнями
             ("blue", (
                 "pazzle_transposition_matrix", "pazzle_conjugate_operator", "pazzle_tensor_product",
                 "pazzle_matrix_unit"), "code_1_0_1.png", "number_517B.png", 3),
@@ -832,9 +846,9 @@ while True:
                 'pazzle_transposition_matrix'),
              "code_0_1_1.png", "number_22081921.png", 5)
         ]
-        level = choice(medium_levels)
-        load_script = LoadHardScript(*level)
-    clock_in_half_hour = datetime.now() + timedelta(seconds=80)  # <== Тут можно менять время
+        level = choice(medium_levels)  # Выбирается один
+        load_script = LoadHardScript(*level)  # Запуск
+    clock_in_half_hour = datetime.now() + timedelta(seconds=81)  # <== Тут можно менять время
     check_winner = CheckWinner()
 
 
@@ -845,7 +859,7 @@ while True:
         f2 = pygame.font.SysFont('serif', 28)
         count_button = pygame.font.SysFont('serif', 28)
         pos = (0, 0)
-        while check_winner.check():
+        while check_winner.check():  # Если self.running станет True, что произойдёт в AnimatedSpriteIndicator.check, то всё заканчивается
             clock.tick(FPS)
             screen.fill(WHILE)
             time_new = datetime.now()
@@ -858,8 +872,8 @@ while True:
             time_render = f2.render(str(time.seconds), False,
                                     (255, 0, 0))
             screen.blit(time_render, (155, 355))
-            if res == "easy_level":
-                screen.blit(count_button_click, (520, 165))
+            if res == "easy_level":  # Это для отрисовка количества кликов по большой кнопки, в нормальной сложности её
+                screen.blit(count_button_click, (520, 165))  # нет, поэтому она просто не отрисуется
             elif res == "hard_level":
                 screen.blit(count_button_click, (445, 158))
             for event in pygame.event.get():
@@ -872,7 +886,7 @@ while True:
                 if event.type == pygame.MOUSEBUTTONUP:
                     push_button(pos)
             pygame.display.flip()
-        finish_menu(time.seconds, res) if load_script.ending else lose_window()
-
-
-    main_cycle()
+        finish_menu(time.seconds,
+                    res) if load_script.ending else lose_window()  # В зависимости от того, какой был конец,
+        # выбирается по новой
+    main_cycle()  # Вызывается игрововой цикл
