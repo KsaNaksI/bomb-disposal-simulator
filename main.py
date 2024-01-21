@@ -824,11 +824,11 @@ while True:
                 "pazzle_transposition_matrix"),
              "code_1_1_0.png", "number_22081921.png", 7),
             ("people", (
-                'pazzle_matrix_unit', 'pazzle_conjugate_operator', 'pazzle_conjugate_operator',
+                'pazzle_matrix_unit', 'pazzle_conjugate_operator', "pazzle_tensor_product",
                 'pazzle_transposition_matrix'),
              "code_1_1_0.png", "number_3A3CC9.png", 9),
             ("yellow", (
-                'pazzle_matrix_unit', 'pazzle_tensor_product', 'pazzle_tensor_product',
+                'pazzle_matrix_unit', 'pazzle_tensor_product', 'pazzle_conjugate_operator',
                 'pazzle_transposition_matrix'),
              "code_0_1_1.png", "number_22081921.png", 5)
         ]
