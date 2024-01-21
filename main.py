@@ -104,7 +104,7 @@ def generate_level(complexity):
     BombDraw(complexity)
 
 
-def main_menu():
+def level_selection_menu():
     fon = pygame.transform.scale(load_image('fon_menu.png'), (W, H))
     screen.blit(fon, (0, 0))
     Fon()
@@ -186,7 +186,7 @@ def start_screen():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if 349 < x < 659 and 202 < y < 346:
-                    result = main_menu()
+                    result = level_selection_menu()
                     if result != "main_menu":
                         return result
                     else:
@@ -834,7 +834,7 @@ while True:
         ]
         level = choice(medium_levels)
         load_script = LoadHardScript(*level)
-    clock_in_half_hour = datetime.now() + timedelta(seconds=1691)  # <== Тут можно менять время
+    clock_in_half_hour = datetime.now() + timedelta(seconds=80)  # <== Тут можно менять время
     check_winner = CheckWinner()
 
 
@@ -873,4 +873,6 @@ while True:
                     push_button(pos)
             pygame.display.flip()
         finish_menu(time.seconds, res) if load_script.ending else lose_window()
+
+
     main_cycle()
