@@ -1,5 +1,4 @@
 import random
-
 import pygame
 import sys
 import os
@@ -75,7 +74,6 @@ def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     # если файл не существует, то выходим
     if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
     image = pygame.image.load(fullname)
     if colorkey is not None:
@@ -110,6 +108,28 @@ def generate_level(complexity):
     BombDraw(complexity)
 
 
+R = 10
+
+
+class Circle:
+    def __init__(self, x, y):
+        self.arr_v = [100, -100]
+        self.x = x
+        self.y = y
+        self.vx = random.choice(self.arr_v)
+        self.vy = random.choice(self.arr_v)
+        self.color = random.choice([WHILE, RED, GREEN, BLACK, BLUE])
+
+    def draw_circle(self, screen, clock):
+        if self.x >= W - R or self.x <= R:
+            self.vx = -self.vx
+        self.x += self.vx * (clock / 1000)
+        if self.y >= H - R or self.y <= R:
+            self.vy = -self.vy
+        self.y += self.vy * (clock / 1000)
+        pygame.draw.circle(screen, self.color, (self.x, self.y), R)
+
+
 # Меню где выбирается сложность уровня, из него можно вернуться обратно в стартовое окно
 def level_selection_menu():
     fon = pygame.transform.scale(load_image('fon_menu.png'), (W, H))
@@ -127,6 +147,8 @@ def level_selection_menu():
     hard_level_button = AnimatedSprite(pygame.transform.scale(load_image('hard_level_button.png'), (600, 150)),
                                        2, 1, 500, 440, 300,
                                        150, False)
+    arr_balls = []
+    clock = pygame.time.Clock()
     flag_button_back = True
     flag_button_easy_level = True
     flag_medium_level_button = True
@@ -163,41 +185,26 @@ def level_selection_menu():
                     flag_hard_level_button = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
-                print(x, y)
-                if 10 < x < 390 and 10 < y < 160:
+                if 10 < x < 310 and 10 < y < 160:
                     return "main_menu"
-                if 500 < x < 800 and 10 < y < 150:
+                elif 500 < x < 800 and 10 < y < 150:
                     return "easy_level"
-                if 500 < x < 800 and 230 < y < 390:
+                elif 500 < x < 800 and 230 < y < 390:
                     return "medium_level"
-                if 500 < x < 800 and 441 < y < 590:
+                elif 500 < x < 800 and 441 < y < 590:
                     return "hard_level"
+                else:
+                    x, y = event.pos
+                    clock.tick()
+                    arr_balls.append(Circle(x, y))
         all_sprites.draw(screen)
+        time = clock.tick()
+        for i in arr_balls:
+            i.draw_circle(screen, time)
         pygame.display.flip()
 
 
 # Стартовое окно, если сложность из меню выбрана, то возвращает её, если нет, то рисует себя по новой
-R = 10
-
-
-class Circle:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.vx = -100
-        self.vy = -100
-        self.color = random.choice([WHILE, RED, GREEN, BLACK, BLUE])
-
-    def draw_circle(self, screen, clock):
-        if self.x >= W - R or self.x <= R:
-            self.vx = -self.vx
-        self.x += self.vx * (clock / 1000)
-        if self.y >= H - R or self.y <= R:
-            self.vy = -self.vy
-        self.y += self.vy * (clock / 1000)
-        pygame.draw.circle(screen, self.color, (self.x, self.y), R)
-
-
 def start_screen():
     fon = pygame.transform.scale(load_image('fon_menu.png'), (W, H))
     screen.blit(fon, (0, 0))
@@ -207,7 +214,7 @@ def start_screen():
                                   300,
                                   150, False)
     flag_button_start = True
-    arr = []
+    arr_balls = []
     clock = pygame.time.Clock()
     while True:
         for event in pygame.event.get():
@@ -232,7 +239,7 @@ def start_screen():
                 else:
                     x, y = event.pos
                     clock.tick()
-                    arr.append(Circle(x, y))
+                    arr_balls.append(Circle(x, y))
             elif event.type == pygame.MOUSEMOTION:
                 x, y = event.pos
                 if 349 < x < 659 and 202 < y < 346 and flag_button_start:
@@ -243,7 +250,7 @@ def start_screen():
                     flag_button_start = True
         all_sprites.draw(screen)
         time = clock.tick()
-        for i in arr:
+        for i in arr_balls:
             i.draw_circle(screen, time)
         pygame.display.flip()
 
@@ -507,7 +514,6 @@ class LoadMediumScript:
     def down_button(self, pos):
         x, y = pos
         arr_coordinates = load_script.arr_coordinates
-        print(x, y)
         if arr_coordinates[8][0][0] < x < arr_coordinates[8][1][0] and arr_coordinates[8][0][1] < y < \
                 arr_coordinates[8][1][
                     1]:
@@ -686,7 +692,6 @@ class LoadHardScript:
     def down_button(self, pos):
         x, y = pos
         arr_coordinates = load_script.arr_coordinates
-        print(x, y)
         if arr_coordinates[5][0][0] < x < arr_coordinates[5][1][0] and arr_coordinates[5][0][1] < y < \
                 arr_coordinates[5][1][
                     1]:
